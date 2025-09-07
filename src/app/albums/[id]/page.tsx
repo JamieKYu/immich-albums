@@ -3,13 +3,19 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import PhotoGrid from "@/components/PhotoGrid";
 
+interface Photo {
+  id: string;
+  type?: string;
+  [key: string]: unknown;
+}
+
 interface Album {
   id: string;
   albumName: string;
   description?: string;
   startDate?: string;
   endDate?: string;
-  assets?: any[];
+  assets?: Photo[];
   [key: string]: unknown;
 }
 
