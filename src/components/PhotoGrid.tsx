@@ -12,6 +12,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
 
   const openLightbox = (fullUrl: string, index: number) => {
     setSelectedImage(fullUrl);
@@ -102,33 +103,52 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
     return type && type.toLowerCase().includes('video');
   };
 
+  const handleImageLoad = (photoId: string) => {
+    setLoadedImages(prev => new Set([...prev, photoId]));
+  };
+
   if (photos.length === 0) {
     return <div className="p-4 text-center">No photos in this album</div>;
   }
 
   return (
     <>
-      <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-0 p-2">
+      <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-1 p-2">
         {photos.map((photo, index) => {
           const thumbUrl = `/api/thumbnail/${photo.id}`;
           const fullUrl = `/api/asset/${photo.id}`;
           const isVideoAsset = isVideo(photo.type);
-
+          const isLoaded = loadedImages.has(photo.id);
+          
           return (
             <div
               key={photo.id}
-              className="cursor-pointer break-inside-avoid mb-2 mx-1 relative group overflow-hidden rounded-sm hover:opacity-90 transition-opacity duration-200"
+              className="cursor-pointer break-inside-avoid mb-1 relative group overflow-hidden hover:opacity-90 transition-opacity duration-200"
               onClick={() => openLightbox(fullUrl, index)}
             >
+              {/* Loading skeleton - shows until image loads */}
+              {!isLoaded && (
+                <div 
+                  className="w-full bg-gray-200 animate-pulse"
+                  style={{ 
+                    aspectRatio: '3/4', // Standard photo aspect ratio
+                    minHeight: '200px' 
+                  }}
+                />
+              )}
+              
               <img
                 src={thumbUrl}
                 alt=""
-                className="w-full object-cover"
-                style={{ aspectRatio: 'auto' }}
+                className={`w-full object-cover transition-opacity duration-300 ${
+                  isLoaded ? 'opacity-100' : 'opacity-0 absolute inset-0'
+                }`}
                 loading="lazy"
+                onLoad={() => handleImageLoad(photo.id)}
               />
+              
               {/* Video overlay indicator */}
-              {isVideoAsset && (
+              {isVideoAsset && isLoaded && (
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                   <div className="bg-black bg-opacity-60 rounded-full p-2">
                     <svg
@@ -175,7 +195,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                 style={{ maxHeight: 'calc(100vh - 40px)', maxWidth: 'calc(100vw - 40px)' }}
               />
             )}
-
+            
             {/* Close button */}
             <button
               onClick={closeLightbox}
@@ -183,7 +203,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
             >
               ×
             </button>
-
+            
             {/* Previous button */}
             {currentIndex > 0 && (
               <button
@@ -196,7 +216,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                 ‹
               </button>
             )}
-
+            
             {/* Next button */}
             {currentIndex < photos.length - 1 && (
               <button
@@ -209,7 +229,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                 ›
               </button>
             )}
-
+            
             {/* Media counter */}
             <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-white bg-black bg-opacity-70 px-3 py-1 rounded z-10">
               {currentIndex + 1} / {photos.length}

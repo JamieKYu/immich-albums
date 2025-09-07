@@ -9,6 +9,10 @@ interface Album {
 }
 
 export default function AlbumGrid({ albums }: { albums: Album[] }) {
+  const handleAlbumClick = () => {
+    // Save scroll position when navigating to album
+    sessionStorage.setItem('albumsScrollPosition', window.scrollY.toString());
+  };
   // Generate deterministic rotation based on album ID
   const getRotation = (albumId: string) => {
     let hash = 0;
@@ -33,7 +37,7 @@ export default function AlbumGrid({ albums }: { albums: Album[] }) {
   return (
     <div className="columns-2 md:columns-3 lg:columns-4 gap-6 p-6 space-y-6">
       {albums.map((album) => (
-        <Link key={album.id} href={`/albums/${album.id}`}>
+        <Link key={album.id} href={`/albums/${album.id}`} onClick={handleAlbumClick}>
           <div
             className="cursor-pointer break-inside-avoid mb-6 transform hover:scale-105 transition-all duration-300 hover:rotate-1"
             style={{
