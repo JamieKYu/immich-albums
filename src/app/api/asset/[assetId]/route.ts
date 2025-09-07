@@ -1,12 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 
+// UUID v4 regex pattern
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isValidUUID(uuid: string): boolean {
+  return UUID_REGEX.test(uuid);
+}
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ assetId: string }> }
 ) {
   try {
     const { assetId } = await params;
+
+    // Validate assetId is a proper UUID
+    if (!isValidUUID(assetId)) {
+      console.warn(`Invalid asset ID format attempted: ${assetId}`);
+      return new NextResponse("Invalid asset ID format", { status: 400 });
+    }
 
     const baseUrl = process.env.IMMICH_URL;
     const response = await axios.get(
