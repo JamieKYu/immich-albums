@@ -1,9 +1,43 @@
-import { getAlbum } from "@/lib/immich";
+"use client";
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import PhotoGrid from "@/components/PhotoGrid";
 
-export default async function Page({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const album = await getAlbum(id);
+interface Album {
+  id: string;
+  albumName: string;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
+  assets?: any[];
+  [key: string]: unknown;
+}
+
+export default function Page() {
+  const params = useParams();
+  const id = params.id as string;
+  const [album, setAlbum] = useState<Album | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAlbum = async () => {
+      try {
+        const response = await fetch(`/api/albums/${id}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch album: ${response.statusText}`);
+        }
+        const albumData = await response.json();
+        setAlbum(albumData);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAlbum();
+  }, [id]);
 
   // Format dates if available
   const formatDate = (dateString?: string) => {
@@ -19,6 +53,48 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
       return null;
     }
   };
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-stone-200">
+        <div className="p-6">
+          <div className="animate-pulse">
+            <div className="h-12 bg-gray-300 rounded mb-4 w-3/4"></div>
+            <div className="h-4 bg-gray-300 rounded mb-2 w-1/2"></div>
+            <div className="h-4 bg-gray-300 rounded mb-4 w-1/3"></div>
+          </div>
+        </div>
+        <div className="p-2">
+          <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-1">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="mb-1 bg-gray-300 animate-pulse break-inside-avoid" style={{ aspectRatio: '3/4', minHeight: '200px' }}></div>
+            ))}
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="min-h-screen bg-stone-200">
+        <div className="p-6">
+          <h1 className="text-3xl font-bold text-red-600 mb-4">Error</h1>
+          <p className="text-gray-700">{error}</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!album) {
+    return (
+      <main className="min-h-screen bg-stone-200">
+        <div className="p-6">
+          <h1 className="text-3xl font-bold text-gray-600 mb-4">Album not found</h1>
+        </div>
+      </main>
+    );
+  }
 
   const startDate = formatDate(album.startDate);
   const endDate = formatDate(album.endDate);
