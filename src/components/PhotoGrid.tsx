@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-import styles from "./PhotoGrid.module.css";
 
 interface Photo {
   id: string;
@@ -51,7 +50,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (!touchStart || !touchEnd) return;
-    
+
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
@@ -99,17 +98,6 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
     };
   }, [selectedImage, currentIndex, photos]);
 
-  // Generate deterministic rotation based on photo ID
-  const getRotation = (photoId: string) => {
-    let hash = 0;
-    for (let i = 0; i < photoId.length; i++) {
-      const char = photoId.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    return (Math.abs(hash) % 600) / 100 - 3; // Range: -3 to 3 degrees
-  };
-
   const isVideo = (type?: string) => {
     return type && type.toLowerCase().includes('video');
   };
@@ -120,54 +108,39 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
 
   return (
     <>
-      <div className={`columns-2 md:columns-3 lg:columns-4 gap-6 p-6 space-y-6 ${styles.photoGrid}`}>
+      <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-0 p-2">
         {photos.map((photo, index) => {
           const thumbUrl = `/api/thumbnail/${photo.id}`;
           const fullUrl = `/api/asset/${photo.id}`;
-          const rotation = getRotation(photo.id);
           const isVideoAsset = isVideo(photo.type);
-          
+
           return (
             <div
               key={photo.id}
-              className="cursor-pointer break-inside-avoid mb-6 transform hover:scale-105 transition-all duration-300 hover:rotate-1"
-              style={{
-                transform: `rotate(${rotation}deg)`,
-                filter: 'drop-shadow(4px 4px 8px rgba(0,0,0,0.3))'
-              }}
+              className="cursor-pointer break-inside-avoid mb-2 mx-1 relative group overflow-hidden rounded-sm hover:opacity-90 transition-opacity duration-200"
               onClick={() => openLightbox(fullUrl, index)}
             >
-              {/* Polaroid Frame */}
-              <div className="bg-white p-3 pb-12 rounded-sm shadow-xl border border-gray-200">
-                {/* Photo/Video */}
-                <div className="bg-gray-100 p-1 rounded-sm relative">
-                  <img
-                    src={thumbUrl}
-                    alt=""
-                    className="w-full object-cover rounded-sm"
-                    style={{ aspectRatio: 'auto' }}
-                  />
-                  {/* Video overlay indicator */}
-                  {isVideoAsset && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="bg-black bg-opacity-60 rounded-full p-2">
-                        <svg
-                          className="w-6 h-6 text-white"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832L14.181 10.832a1 1 0 000-1.664l-4.626-2.832z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    </div>
-                  )}
+              <img
+                src={thumbUrl}
+                alt=""
+                className="w-full object-cover"
+                style={{ aspectRatio: 'auto' }}
+                loading="lazy"
+              />
+              {/* Video overlay indicator */}
+              {isVideoAsset && (
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <div className="bg-black bg-opacity-60 rounded-full p-2">
+                    <svg
+                      className="w-8 h-8 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832L14.181 10.832a1 1 0 000-1.664l-4.626-2.832z" clipRule="evenodd" />
+                    </svg>
+                  </div>
                 </div>
-                
-                {/* Optional caption area - empty for photos */}
-                <div className="pt-3 px-2 h-6">
-                  {/* Empty space for polaroid bottom margin */}
-                </div>
-              </div>
+              )}
             </div>
           );
         })}
@@ -202,7 +175,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                 style={{ maxHeight: 'calc(100vh - 40px)', maxWidth: 'calc(100vw - 40px)' }}
               />
             )}
-            
+
             {/* Close button */}
             <button
               onClick={closeLightbox}
@@ -210,7 +183,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
             >
               ×
             </button>
-            
+
             {/* Previous button */}
             {currentIndex > 0 && (
               <button
@@ -223,7 +196,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                 ‹
               </button>
             )}
-            
+
             {/* Next button */}
             {currentIndex < photos.length - 1 && (
               <button
@@ -236,7 +209,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                 ›
               </button>
             )}
-            
+
             {/* Media counter */}
             <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-white bg-black bg-opacity-70 px-3 py-1 rounded z-10">
               {currentIndex + 1} / {photos.length}

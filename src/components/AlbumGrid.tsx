@@ -34,7 +34,7 @@ export default function AlbumGrid({ albums }: { albums: Album[] }) {
     <div className="columns-2 md:columns-3 lg:columns-4 gap-6 p-6 space-y-6">
       {albums.map((album) => (
         <Link key={album.id} href={`/albums/${album.id}`}>
-          <div 
+          <div
             className="cursor-pointer break-inside-avoid mb-6 transform hover:scale-105 transition-all duration-300 hover:rotate-1"
             style={{
               transform: `rotate(${getRotation(album.id)}deg)`,
@@ -52,13 +52,13 @@ export default function AlbumGrid({ albums }: { albums: Album[] }) {
                   style={{ aspectRatio: 'auto' }}
                 />
               </div>
-              
+
               {/* Handwritten Caption */}
               <div className="pt-4 px-2">
-                <p 
+                <p
                   className="text-center text-gray-700 leading-relaxed transform font-kalam italic"
                   style={{
-                    fontSize: '18px',
+                    fontSize: '20px',
                     fontWeight: '400',
                     transform: `rotate(${getTextRotation(album.id)}deg)`,
                     textShadow: '0.5px 0.5px 1px rgba(0,0,0,0.1)'
