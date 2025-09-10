@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import PhotoGrid from "@/components/PhotoGrid";
+import { createApiUrl } from "@/lib/basePath";
 
 interface Photo {
   id: string;
@@ -29,7 +30,7 @@ export default function Page() {
   useEffect(() => {
     const fetchAlbum = async () => {
       try {
-        const response = await fetch(`/api/albums/${id}`);
+        const response = await fetch(createApiUrl(`/albums/${id}`));
         if (!response.ok) {
           throw new Error(`Failed to fetch album: ${response.statusText}`);
         }

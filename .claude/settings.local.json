@@ -9,7 +9,8 @@
       "Bash(docker exec:*)",
       "Bash(docker-compose:*)",
       "Bash(docker logs:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(pkill:*)"
     ],
     "deny": [],
     "ask": []

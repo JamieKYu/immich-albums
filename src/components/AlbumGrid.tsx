@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { createApiUrl } from "@/lib/basePath";
 
 interface Album {
   id: string;
@@ -50,7 +51,7 @@ export default function AlbumGrid({ albums }: { albums: Album[] }) {
               {/* Photo */}
               <div className="bg-gray-100 p-1 rounded-sm">
                 <img
-                  src={`/api/thumbnail/${album.albumThumbnailAssetId}`}
+                  src={createApiUrl(`/thumbnail/${album.albumThumbnailAssetId}`)}
                   alt={album.albumName}
                   className="w-full object-cover rounded-sm"
                   style={{ aspectRatio: 'auto' }}

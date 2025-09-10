@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { createApiUrl } from "@/lib/basePath";
 
 interface Photo {
   id: string;
@@ -27,7 +28,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
     if (currentIndex < photos.length - 1) {
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
-      setSelectedImage(`/api/asset/${photos[nextIndex].id}`);
+      setSelectedImage(createApiUrl(`/asset/${photos[nextIndex].id}`));
     }
   };
 
@@ -35,7 +36,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
     if (currentIndex > 0) {
       const prevIndex = currentIndex - 1;
       setCurrentIndex(prevIndex);
-      setSelectedImage(`/api/asset/${photos[prevIndex].id}`);
+      setSelectedImage(createApiUrl(`/asset/${photos[prevIndex].id}`));
     }
   };
 
@@ -79,13 +80,13 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
         if (currentIndex < photos.length - 1) {
           const nextIndex = currentIndex + 1;
           setCurrentIndex(nextIndex);
-          setSelectedImage(`/api/asset/${photos[nextIndex].id}`);
+          setSelectedImage(createApiUrl(`/asset/${photos[nextIndex].id}`));
         }
       } else if (e.key === 'ArrowLeft') {
         if (currentIndex > 0) {
           const prevIndex = currentIndex - 1;
           setCurrentIndex(prevIndex);
-          setSelectedImage(`/api/asset/${photos[prevIndex].id}`);
+          setSelectedImage(createApiUrl(`/asset/${photos[prevIndex].id}`));
         }
       }
     };
@@ -115,8 +116,8 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
     <>
       <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-1 p-2">
         {photos.map((photo, index) => {
-          const thumbUrl = `/api/thumbnail/${photo.id}`;
-          const fullUrl = `/api/asset/${photo.id}`;
+          const thumbUrl = createApiUrl(`/thumbnail/${photo.id}`);
+          const fullUrl = createApiUrl(`/asset/${photo.id}`);
           const isVideoAsset = isVideo(photo.type);
           const isLoaded = loadedImages.has(photo.id);
           

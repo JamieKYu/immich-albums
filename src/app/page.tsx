@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import AlbumGrid from "@/components/AlbumGrid";
 import YearNavigation from "@/components/YearNavigation";
+import { createApiUrl } from "@/lib/basePath";
 
 interface Album {
   id: string;
@@ -20,7 +21,7 @@ export default function Page() {
   // Initialize data on mount
   useEffect(() => {
     const initializeData = async () => {
-      const response = await fetch("/api/albums");
+      const response = await fetch(createApiUrl("/albums"));
       const albumsData: Album[] = await response.json();
       
       // Group albums by year from startDate
