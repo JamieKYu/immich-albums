@@ -105,12 +105,12 @@ export default function YearNavigation({ years, onYearSelect, yearRefs }: YearNa
   const thumbPosition = (sliderValue / (years.length - 1)) * 100;
 
   return (
-    <div className="fixed right-0 top-0 h-screen z-10 pr-16 hidden md:block">
+    <div className="fixed right-0 top-0 h-screen z-10 pr-16 pt-16 hidden md:block">
       <div className="h-full flex items-center">
         <div className="flex flex-col items-center space-y-4 h-5/6">
           {/* Custom vertical slider */}
           <div className="relative flex-1 flex items-center">
-            <div 
+            <div
               ref={sliderRef}
               className="relative h-full w-1 bg-gray-300 rounded-sm cursor-pointer"
               onMouseDown={handleMouseDown}
@@ -124,27 +124,31 @@ export default function YearNavigation({ years, onYearSelect, yearRefs }: YearNa
                 }}
               />
             </div>
-            
-            {/* Tick marks and Year labels combined */}
-            <div className="absolute left-2 top-0 h-full flex flex-col justify-between">
-              {years.map((year, index) => (
-                <button
-                  key={year}
-                  onClick={() => handleYearClick(year, index)}
-                  className="flex items-center space-x-2 transition-all duration-200 hover:scale-110 cursor-pointer"
-                >
-                  {/* Tick mark */}
-                  <div className="w-2 h-0.5 bg-gray-600" />
-                  {/* Year label */}
-                  <span className={`text-sm font-medium ${
-                    selectedYear === year 
-                      ? 'text-black font-bold' 
-                      : 'text-gray-600 hover:text-black'
-                  }`}>
-                    {year}
-                  </span>
-                </button>
-              ))}
+
+            {/* Tick marks and Year labels positioned to align with thumb */}
+            <div className="absolute left-2 top-0 h-full">
+              {years.map((year, index) => {
+                const position = (index / (years.length - 1)) * 100;
+                return (
+                  <button
+                    key={year}
+                    onClick={() => handleYearClick(year, index)}
+                    className="absolute flex items-center space-x-2 transition-all duration-200 hover:scale-110 cursor-pointer transform -translate-y-1/2"
+                    style={{ top: `${position}%` }}
+                  >
+                    {/* Tick mark */}
+                    <div className="w-2 h-0.5 bg-gray-600" />
+                    {/* Year label */}
+                    <span className={`text-sm font-medium whitespace-nowrap ${
+                      selectedYear === year
+                        ? 'text-black font-bold'
+                        : 'text-gray-600 hover:text-black'
+                    }`}>
+                      {year}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import { Header } from "@jamiekyu/website-header";
 import AlbumGrid from "@/components/AlbumGrid";
 import YearNavigation from "@/components/YearNavigation";
 import { createApiUrl } from "@/lib/basePath";
@@ -23,7 +24,7 @@ export default function Page() {
     const initializeData = async () => {
       const response = await fetch(createApiUrl("/albums"));
       const albumsData: Album[] = await response.json();
-      
+
       // Group albums by year from startDate
       const albumsByYearData = albumsData.reduce((acc: Record<string, Album[]>, album: Album) => {
         if (album.startDate) {
@@ -35,22 +36,22 @@ export default function Page() {
         }
         return acc;
       }, {});
-      
+
       // Sort years in descending order
       const sortedYearsData = Object.keys(albumsByYearData).sort((a, b) => parseInt(b) - parseInt(a));
-      
+
       // Sort albums within each year by startDate (descending)
       sortedYearsData.forEach(year => {
-        albumsByYearData[year].sort((a: Album, b: Album) => 
+        albumsByYearData[year].sort((a: Album, b: Album) =>
           new Date(b.startDate || 0).getTime() - new Date(a.startDate || 0).getTime()
         );
       });
-      
+
       setAlbumsByYear(albumsByYearData);
       setSortedYears(sortedYearsData);
       setIsDataLoaded(true);
     };
-    
+
     initializeData();
   }, []);
 
@@ -61,7 +62,7 @@ export default function Page() {
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
-    
+
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
@@ -89,40 +90,45 @@ export default function Page() {
 
     // Small delay to ensure all content is rendered
     const timer = setTimeout(restoreScrollPosition, 100);
-    
+
     return () => clearTimeout(timer);
   }, [isDataLoaded]);
 
   const scrollToYear = (year: string) => {
     const element = yearRefs.current[year];
     if (element) {
-      element.scrollIntoView({ 
+      element.scrollIntoView({
         behavior: 'smooth',
         block: 'start'
       });
     }
   };
-  
+
   return (
     <main className="min-h-screen bg-stone-200">
-        <h1 className="text-5xl font-bold p-6 text-center text-black font-caveat italic">Photo Albums</h1>
-        <div className="md:pr-20">
+        <Header />
+        <div className="pt-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 className="text-5xl font-bold py-6 text-center text-black font-caveat italic">Photo Albums</h1>
+            <div className="md:pr-20">
           {sortedYears.map(year => (
-            <div 
-              key={year} 
+            <div
+              key={year}
               className="mb-12"
               ref={(el) => { yearRefs.current[year] = el; }}
             >
-              <h2 className="text-4xl font-bold text-left text-black px-6 pb-4 font-caveat italic">
+              <h2 className="text-4xl font-bold text-left text-black pb-4 font-caveat italic">
                 {year}
               </h2>
               <AlbumGrid albums={albumsByYear[year]} />
             </div>
           ))}
+            </div>
+          </div>
         </div>
-        
-        <YearNavigation 
-          years={sortedYears} 
+
+        <YearNavigation
+          years={sortedYears}
           onYearSelect={scrollToYear}
           yearRefs={yearRefs}
         />

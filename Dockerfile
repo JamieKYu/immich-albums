@@ -22,6 +22,11 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 # ENV NEXT_TELEMETRY_DISABLED=1
 
+# Create config directory if it doesn't exist
+RUN mkdir -p ./config
+# Create a dummy config file if it doesn't exist (will be ignored due to fallback logic)
+RUN test -f ./config/header-config.json || echo '{}' > ./config/header-config.json
+
 RUN npm run build
 
 # Production image, copy all the files and run next
@@ -35,7 +40,10 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+# Copy config file (will always exist due to builder stage logic)
+COPY --from=builder --chown=nextjs:nodejs /app/config/header-config.json ./config/header-config.json
 
 # Set the correct permission for prerender cache
 RUN mkdir .next

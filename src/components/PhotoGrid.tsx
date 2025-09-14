@@ -109,12 +109,17 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
   };
 
   if (photos.length === 0) {
-    return <div className="p-4 text-center">No photos in this album</div>;
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="py-4 text-center">No photos in this album</div>
+      </div>
+    );
   }
 
   return (
     <>
-      <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-1 p-2">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-1">
         {photos.map((photo, index) => {
           const thumbUrl = createApiUrl(`/thumbnail/${photo.id}`);
           const fullUrl = createApiUrl(`/asset/${photo.id}`);
@@ -165,6 +170,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
             </div>
           );
         })}
+        </div>
       </div>
 
       {/* Custom Lightbox */}

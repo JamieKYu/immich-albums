@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import { Header } from "@jamiekyu/website-header";
 import PhotoGrid from "@/components/PhotoGrid";
 import { createApiUrl } from "@/lib/basePath";
 
@@ -64,11 +65,16 @@ export default function Page() {
   if (loading) {
     return (
       <main className="min-h-screen bg-stone-200">
-        <div className="p-6">
-          <div className="animate-pulse">
-            <div className="h-12 bg-gray-300 rounded mb-4 w-3/4"></div>
-            <div className="h-4 bg-gray-300 rounded mb-2 w-1/2"></div>
-            <div className="h-4 bg-gray-300 rounded mb-4 w-1/3"></div>
+        <Header/>
+        <div className="pt-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="py-6">
+              <div className="animate-pulse">
+                <div className="h-12 bg-gray-300 rounded mb-4 w-3/4"></div>
+                <div className="h-4 bg-gray-300 rounded mb-2 w-1/2"></div>
+                <div className="h-4 bg-gray-300 rounded mb-4 w-1/3"></div>
+              </div>
+            </div>
           </div>
         </div>
         <div className="p-2">
@@ -85,9 +91,14 @@ export default function Page() {
   if (error) {
     return (
       <main className="min-h-screen bg-stone-200">
-        <div className="p-6">
-          <h1 className="text-3xl font-bold text-red-600 mb-4">Error</h1>
-          <p className="text-gray-700">{error}</p>
+        <Header/>
+        <div className="pt-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="py-6">
+              <h1 className="text-3xl font-bold text-red-600 mb-4">Error</h1>
+              <p className="text-gray-700">{error}</p>
+            </div>
+          </div>
         </div>
       </main>
     );
@@ -96,8 +107,13 @@ export default function Page() {
   if (!album) {
     return (
       <main className="min-h-screen bg-stone-200">
-        <div className="p-6">
-          <h1 className="text-3xl font-bold text-gray-600 mb-4">Album not found</h1>
+        <Header/>
+        <div className="pt-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="py-6">
+              <h1 className="text-3xl font-bold text-gray-600 mb-4">Album not found</h1>
+            </div>
+          </div>
         </div>
       </main>
     );
@@ -108,36 +124,41 @@ export default function Page() {
 
   return (
     <main className="min-h-screen bg-stone-200">
-      <div className="p-6">
-        <h1 className="text-5xl font-bold text-left text-black font-caveat italic mb-4">
-          {album.albumName}
-        </h1>
+      <Header/>
+      <div className="pt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-6">
+            <h1 className="text-5xl font-bold text-left text-black font-caveat italic mb-4">
+              {album.albumName}
+            </h1>
 
-        {/* Album metadata */}
-        <div className="mb-4 text-gray-700 space-y-2">
-          {/* Album description */}
-          {album.description && (
-            <p className="text-lg text-gray-700 pt-2">{album.description}</p>
-          )}
+            {/* Album metadata */}
+            <div className="mb-4 text-gray-700 space-y-2">
+              {/* Album description */}
+              {album.description && (
+                <p className="text-lg text-gray-700 pt-2">{album.description}</p>
+              )}
 
-          {/* Date range */}
-          {startDate && endDate && startDate !== endDate && (
-            <div className="flex items-center gap-1 text-sm">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              {startDate} - {endDate}
+              {/* Date range */}
+              {startDate && endDate && startDate !== endDate && (
+                <div className="flex items-center gap-1 text-sm">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  {startDate} - {endDate}
+                </div>
+              )}
+
+              {startDate && (!endDate || startDate === endDate) && (
+                <div className="flex items-center gap-1 text-sm">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  {startDate}
+                </div>
+              )}
             </div>
-          )}
-
-          {startDate && (!endDate || startDate === endDate) && (
-            <div className="flex items-center gap-1 text-sm">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              {startDate}
-            </div>
-          )}
+          </div>
         </div>
       </div>
 
