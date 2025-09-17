@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createApiUrl } from "@/lib/basePath";
 
 interface Photo {
@@ -15,9 +15,60 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
 
-  const openLightbox = (fullUrl: string, index: number) => {
-    setSelectedImage(fullUrl);
-    setCurrentIndex(index);
+  // Cache for precomputed URLs to prevent refetching
+  const [assetUrls] = useState<Map<string, string>>(() => {
+    const urlMap = new Map<string, string>();
+    photos.forEach(photo => {
+      urlMap.set(photo.id, createApiUrl(`/asset/${photo.id}`));
+    });
+    return urlMap;
+  });
+
+  // Track prefetched images to avoid duplicates - use useRef to persist across renders
+  const prefetchedImages = useRef<Set<string>>(new Set());
+
+  // Prefetch adjacent images
+  const prefetchImage = (photoId: string) => {
+    if (prefetchedImages.current.has(photoId)) {
+      console.log(`Skipping prefetch for ${photoId} - already prefetched`);
+      return; // Already prefetched
+    }
+
+    const url = assetUrls.get(photoId);
+    if (url) {
+      console.log(`Prefetching image: ${photoId} -> ${url}`);
+
+      // Mark as prefetched immediately to prevent duplicates
+      prefetchedImages.current.add(photoId);
+
+      // Use Image() for prefetching (simpler and more reliable)
+      const img = new Image();
+      img.onload = () => console.log(`Prefetch completed: ${photoId}`);
+      img.onerror = () => console.log(`Prefetch failed: ${photoId}`);
+      img.src = url;
+    }
+  };
+
+  const prefetchAdjacentImages = (index: number) => {
+    console.log(`Prefetching adjacent images for index ${index}`);
+    // Prefetch next 2 images
+    for (let i = 1; i <= 2 && index + i < photos.length; i++) {
+      prefetchImage(photos[index + i].id);
+    }
+    // Prefetch previous 2 images
+    for (let i = 1; i <= 2 && index - i >= 0; i++) {
+      prefetchImage(photos[index - i].id);
+    }
+  };
+
+  const openLightbox = (photoId: string, index: number) => {
+    const fullUrl = assetUrls.get(photoId);
+    if (fullUrl) {
+      setSelectedImage(fullUrl);
+      setCurrentIndex(index);
+      // Prefetch adjacent images when lightbox opens
+      prefetchAdjacentImages(index);
+    }
   };
 
   const closeLightbox = () => {
@@ -28,7 +79,14 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
     if (currentIndex < photos.length - 1) {
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
-      setSelectedImage(createApiUrl(`/asset/${photos[nextIndex].id}`));
+      const nextUrl = assetUrls.get(photos[nextIndex].id);
+      if (nextUrl) {
+        setSelectedImage(nextUrl);
+        // Only prefetch the next image in the direction we're going
+        if (nextIndex + 1 < photos.length) {
+          prefetchImage(photos[nextIndex + 1].id);
+        }
+      }
     }
   };
 
@@ -36,7 +94,14 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
     if (currentIndex > 0) {
       const prevIndex = currentIndex - 1;
       setCurrentIndex(prevIndex);
-      setSelectedImage(createApiUrl(`/asset/${photos[prevIndex].id}`));
+      const prevUrl = assetUrls.get(photos[prevIndex].id);
+      if (prevUrl) {
+        setSelectedImage(prevUrl);
+        // Only prefetch the previous image in the direction we're going
+        if (prevIndex - 1 >= 0) {
+          prefetchImage(photos[prevIndex - 1].id);
+        }
+      }
     }
   };
 
@@ -77,17 +142,9 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
       if (e.key === 'Escape') {
         setSelectedImage(null);
       } else if (e.key === 'ArrowRight') {
-        if (currentIndex < photos.length - 1) {
-          const nextIndex = currentIndex + 1;
-          setCurrentIndex(nextIndex);
-          setSelectedImage(createApiUrl(`/asset/${photos[nextIndex].id}`));
-        }
+        goToNext();
       } else if (e.key === 'ArrowLeft') {
-        if (currentIndex > 0) {
-          const prevIndex = currentIndex - 1;
-          setCurrentIndex(prevIndex);
-          setSelectedImage(createApiUrl(`/asset/${photos[prevIndex].id}`));
-        }
+        goToPrevious();
       }
     };
 
@@ -122,15 +179,14 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
         <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-1">
         {photos.map((photo, index) => {
           const thumbUrl = createApiUrl(`/thumbnail/${photo.id}`);
-          const fullUrl = createApiUrl(`/asset/${photo.id}`);
           const isVideoAsset = isVideo(photo.type);
           const isLoaded = loadedImages.has(photo.id);
-          
+
           return (
             <div
               key={photo.id}
               className="cursor-pointer break-inside-avoid mb-1 relative group overflow-hidden hover:opacity-90 transition-opacity duration-200"
-              onClick={() => openLightbox(fullUrl, index)}
+              onClick={() => openLightbox(photo.id, index)}
             >
               {/* Loading skeleton - shows until image loads */}
               {!isLoaded && (
