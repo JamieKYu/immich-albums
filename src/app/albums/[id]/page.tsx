@@ -66,8 +66,8 @@ export default function Page() {
     return (
       <main className="min-h-screen bg-stone-200">
         <Header/>
-        <div className="pt-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="page-padding">
+          <div className="max-w-7xl mx-auto">
             <div className="py-6">
               <div className="animate-pulse">
                 <div className="h-12 bg-gray-300 rounded mb-4 w-3/4"></div>
@@ -92,8 +92,8 @@ export default function Page() {
     return (
       <main className="min-h-screen bg-stone-200">
         <Header/>
-        <div className="pt-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="page-padding">
+          <div className="max-w-7xl mx-auto">
             <div className="py-6">
               <h1 className="text-3xl font-bold text-red-600 mb-4">Error</h1>
               <p className="text-gray-700">{error}</p>
@@ -108,8 +108,8 @@ export default function Page() {
     return (
       <main className="min-h-screen bg-stone-200">
         <Header/>
-        <div className="pt-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="page-padding">
+          <div className="max-w-7xl mx-auto">
             <div className="py-6">
               <h1 className="text-3xl font-bold text-gray-600 mb-4">Album not found</h1>
             </div>
@@ -125,15 +125,15 @@ export default function Page() {
   return (
     <main className="min-h-screen bg-stone-200">
       <Header/>
-      <div className="pt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <h1 className="text-5xl font-bold text-left text-black font-caveat italic mb-4">
+      <div className="page-padding">
+        <div className="max-w-7xl mx-auto">
+          <div className="pb-6">
+            <h1 className="section-heading">
               {album.albumName}
             </h1>
 
             {/* Album metadata */}
-            <div className="mb-4 text-gray-700 space-y-2">
+            <div className="mb-8 text-gray-700 space-y-2">
               {/* Album description */}
               {album.description && (
                 <p className="text-lg text-gray-700 pt-2">{album.description}</p>
@@ -158,11 +158,11 @@ export default function Page() {
                 </div>
               )}
             </div>
+
+            <PhotoGrid photos={album.assets || []} />
           </div>
         </div>
       </div>
-
-      <PhotoGrid photos={album.assets || []} />
     </main>
   );
 }

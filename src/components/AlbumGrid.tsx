@@ -36,7 +36,7 @@ export default function AlbumGrid({ albums }: { albums: Album[] }) {
   };
 
   return (
-    <div className="columns-2 md:columns-3 lg:columns-4 gap-6 p-6 space-y-6">
+    <div className="columns-2 md:columns-3 lg:columns-4 gap-6 space-y-6">
       {albums.map((album) => (
         <Link key={album.id} href={`/albums/${album.id}`} onClick={handleAlbumClick}>
           <div

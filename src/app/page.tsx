@@ -107,9 +107,9 @@ export default function Page() {
   return (
     <main className="min-h-screen bg-stone-200">
         <Header />
-        <div className="pt-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-5xl font-bold py-6 text-center text-black font-caveat italic">Photo Albums</h1>
+        <div className="page-padding">
+          <div className="max-w-7xl mx-auto">
+            <h1 className="page-title">Photo Albums</h1>
             <div className="md:pr-20">
           {sortedYears.map(year => (
             <div
@@ -117,7 +117,7 @@ export default function Page() {
               className="mb-12"
               ref={(el) => { yearRefs.current[year] = el; }}
             >
-              <h2 className="text-4xl font-bold text-left text-black pb-4 font-caveat italic">
+              <h2 className="section-heading">
                 {year}
               </h2>
               <AlbumGrid albums={albumsByYear[year]} />

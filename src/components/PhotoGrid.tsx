@@ -167,7 +167,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
 
   if (photos.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
         <div className="py-4 text-center">No photos in this album</div>
       </div>
     );
@@ -175,7 +175,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
 
   return (
     <>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
         <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-1">
         {photos.map((photo, index) => {
           const thumbUrl = createApiUrl(`/thumbnail/${photo.id}`);
