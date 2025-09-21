@@ -13,6 +13,9 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [isMultiTouch, setIsMultiTouch] = useState(false);
+  const [isImageZoomed, setIsImageZoomed] = useState(false);
+  const imageRef = useRef<HTMLImageElement>(null);
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
 
   // Cache for precomputed URLs to prevent refetching
@@ -73,6 +76,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
 
   const closeLightbox = () => {
     setSelectedImage(null);
+    setIsImageZoomed(false);
   };
 
   const goToNext = () => {
@@ -82,6 +86,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
       const nextUrl = assetUrls.get(photos[nextIndex].id);
       if (nextUrl) {
         setSelectedImage(nextUrl);
+        setIsImageZoomed(false);
         // Only prefetch the next image in the direction we're going
         if (nextIndex + 1 < photos.length) {
           prefetchImage(photos[nextIndex + 1].id);
@@ -97,6 +102,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
       const prevUrl = assetUrls.get(photos[prevIndex].id);
       if (prevUrl) {
         setSelectedImage(prevUrl);
+        setIsImageZoomed(false);
         // Only prefetch the previous image in the direction we're going
         if (prevIndex - 1 >= 0) {
           prefetchImage(photos[prevIndex - 1].id);
@@ -108,15 +114,37 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
   // Handle touch events for swipe gestures
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
+    setIsMultiTouch(e.touches.length > 1);
+    if (e.touches.length === 1) {
+      setTouchStart(e.targetTouches[0].clientX);
+    }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
+    if (e.touches.length > 1) {
+      setIsMultiTouch(true);
+      // Immediately set zoomed state for multi-touch (pinch) gestures
+      setIsImageZoomed(true);
+      return;
+    }
+    if (e.touches.length === 1 && !isMultiTouch) {
+      setTouchEnd(e.targetTouches[0].clientX);
+    }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStart || !touchEnd) return;
+    // Reset multi-touch state when all touches are released
+    if (e.touches.length === 0) {
+      setIsMultiTouch(false);
+      // Check if image is still zoomed after touch ends - longer delay for mobile
+      setTimeout(() => {
+        const stillZoomed = checkImageZoom();
+        setIsImageZoomed(stillZoomed);
+      }, 200);
+    }
+
+    // Don't process swipe if this was a multi-touch gesture, image is zoomed, or no touch data
+    if (isMultiTouch || isImageZoomed || !touchStart || !touchEnd) return;
 
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50;
@@ -133,6 +161,60 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
     }
   };
 
+  // Check if image is actually zoomed by comparing natural vs display size
+  const checkImageZoom = () => {
+    if (!imageRef.current) return false;
+
+    const img = imageRef.current;
+    const container = img.parentElement;
+    if (!container) return false;
+
+    // Get the natural (original) dimensions
+    const naturalWidth = img.naturalWidth;
+    const naturalHeight = img.naturalHeight;
+
+    // Get the current display dimensions
+    const displayWidth = img.offsetWidth;
+    const displayHeight = img.offsetHeight;
+
+    // Get container dimensions - use viewport for mobile
+    const containerWidth = window.innerWidth - 40; // accounting for padding
+    const containerHeight = window.innerHeight - 40;
+
+    // Calculate what the "fit" size should be (object-contain behavior)
+    const naturalRatio = naturalWidth / naturalHeight;
+    const containerRatio = containerWidth / containerHeight;
+
+    let fitWidth, fitHeight;
+    if (naturalRatio > containerRatio) {
+      // Image is wider - fit to width
+      fitWidth = containerWidth;
+      fitHeight = containerWidth / naturalRatio;
+    } else {
+      // Image is taller - fit to height
+      fitHeight = containerHeight;
+      fitWidth = containerHeight * naturalRatio;
+    }
+
+    // More generous tolerance for mobile (10px)
+    const tolerance = 10;
+    const isZoomed = displayWidth > (fitWidth + tolerance) || displayHeight > (fitHeight + tolerance);
+
+
+    return isZoomed;
+  };
+
+  // Handle wheel events to detect zoom
+  const handleWheel = (e: React.WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      // Zoom detected (ctrl/cmd + scroll) - check actual zoom after a brief delay
+      setTimeout(() => {
+        setIsImageZoomed(checkImageZoom());
+      }, 50);
+    }
+  };
+
+
   // Handle keyboard events with useEffect for global event listener
   useEffect(() => {
     if (!selectedImage) return;
@@ -141,9 +223,9 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
       e.preventDefault();
       if (e.key === 'Escape') {
         setSelectedImage(null);
-      } else if (e.key === 'ArrowRight') {
+      } else if (!isImageZoomed && e.key === 'ArrowRight') {
         goToNext();
-      } else if (e.key === 'ArrowLeft') {
+      } else if (!isImageZoomed && e.key === 'ArrowLeft') {
         goToPrevious();
       }
     };
@@ -155,7 +237,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selectedImage, currentIndex, photos]);
+  }, [selectedImage, currentIndex, photos, isImageZoomed]);
 
   const isVideo = (type?: string) => {
     return type && type.toLowerCase().includes('video');
@@ -232,11 +314,12 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
       {/* Custom Lightbox */}
       {selectedImage && (
         <div
-          className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center"
-          onClick={closeLightbox}
+          className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center cursor-pointer"
+          onClick={isImageZoomed ? undefined : closeLightbox}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
+          onWheel={handleWheel}
           style={{ padding: '20px' }}
         >
           <div className="relative w-full h-full flex items-center justify-center">
@@ -251,6 +334,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
               />
             ) : (
               <img
+                ref={imageRef}
                 src={selectedImage}
                 alt=""
                 className="max-w-full max-h-full object-contain"
@@ -259,44 +343,49 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
               />
             )}
             
-            {/* Close button */}
+            {/* Close button - always visible */}
             <button
               onClick={closeLightbox}
               className="absolute top-2 right-2 text-white text-2xl bg-black bg-opacity-70 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-90 z-10"
             >
               ×
             </button>
-            
-            {/* Previous button */}
-            {currentIndex > 0 && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  goToPrevious();
-                }}
-                className="absolute left-2 top-1/2 transform -translate-y-1/2 text-white text-3xl bg-black bg-opacity-70 rounded-full w-12 h-12 flex items-center justify-center hover:bg-opacity-90 z-10"
-              >
-                ‹
-              </button>
+
+            {/* Navigation elements - hidden when zoomed */}
+            {!isImageZoomed && (
+              <>
+                {/* Previous button */}
+                {currentIndex > 0 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToPrevious();
+                    }}
+                    className="absolute left-2 top-1/2 transform -translate-y-1/2 text-white text-3xl bg-black bg-opacity-70 rounded-full w-12 h-12 flex items-center justify-center hover:bg-opacity-90 z-10"
+                  >
+                    ‹
+                  </button>
+                )}
+
+                {/* Next button */}
+                {currentIndex < photos.length - 1 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToNext();
+                    }}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white text-3xl bg-black bg-opacity-70 rounded-full w-12 h-12 flex items-center justify-center hover:bg-opacity-90 z-10"
+                  >
+                    ›
+                  </button>
+                )}
+
+                {/* Media counter */}
+                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-white bg-black bg-opacity-70 px-3 py-1 rounded z-10">
+                  {currentIndex + 1} / {photos.length}
+                </div>
+              </>
             )}
-            
-            {/* Next button */}
-            {currentIndex < photos.length - 1 && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  goToNext();
-                }}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white text-3xl bg-black bg-opacity-70 rounded-full w-12 h-12 flex items-center justify-center hover:bg-opacity-90 z-10"
-              >
-                ›
-              </button>
-            )}
-            
-            {/* Media counter */}
-            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-white bg-black bg-opacity-70 px-3 py-1 rounded z-10">
-              {currentIndex + 1} / {photos.length}
-            </div>
           </div>
         </div>
       )}
