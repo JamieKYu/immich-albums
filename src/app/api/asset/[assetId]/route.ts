@@ -9,7 +9,7 @@ function isValidUUID(uuid: string): boolean {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ assetId: string }> }
 ) {
   try {
@@ -19,6 +19,15 @@ export async function GET(
     if (!isValidUUID(assetId)) {
       console.warn(`Invalid asset ID format attempted: ${assetId}`);
       return new NextResponse("Invalid asset ID format", { status: 400 });
+    }
+
+    // Create a stable ETag based on assetId (assets don't change)
+    const etag = `"asset-${assetId}"`;
+
+    // Check if client has cached version
+    const ifNoneMatch = request.headers.get('if-none-match');
+    if (ifNoneMatch === etag) {
+      return new NextResponse(null, { status: 304 });
     }
 
     const baseUrl = process.env.IMMICH_URL;
@@ -38,7 +47,8 @@ export async function GET(
     return new NextResponse(buffer, {
       headers: {
         "Content-Type": response.headers["content-type"] || "image/jpeg",
-        "Cache-Control": "public, max-age=86400",
+        "Cache-Control": "public, max-age=31536000, immutable", // 1 year, immutable
+        "ETag": etag,
         "Content-Length": buffer.length.toString(),
       },
     });

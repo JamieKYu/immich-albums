@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
+import crypto from "crypto";
 
 // UUID v4 regex pattern
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -9,16 +10,26 @@ function isValidUUID(uuid: string): boolean {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ assetId: string }> }
 ) {
   try {
     const { assetId } = await params;
-    
+
     // Validate assetId is a proper UUID
     if (!isValidUUID(assetId)) {
       console.warn(`Invalid thumbnail asset ID format attempted: ${assetId}`);
       return new NextResponse("Invalid asset ID format", { status: 400 });
+    }
+
+    // Create a stable ETag based on assetId (thumbnails don't change)
+    const etag = `"thumb-${assetId}"`;
+
+    // Check if client has cached version
+    const ifNoneMatch = request.headers.get('if-none-match');
+
+    if (ifNoneMatch === etag) {
+      return new NextResponse(null, { status: 304 });
     }
 
     const baseUrl = process.env.IMMICH_URL;
@@ -35,11 +46,26 @@ export async function GET(
 
     const buffer = Buffer.from(response.data);
 
+    // Create a stable Last-Modified date based on assetId (for consistent caching)
+    const hash = crypto.createHash('md5').update(assetId).digest('hex');
+    const timestamp = parseInt(hash.substring(0, 8), 16) % (365 * 24 * 60 * 60 * 1000); // Within last year
+    const lastModified = new Date(Date.now() - timestamp).toUTCString();
+
+    // Also check If-Modified-Since header
+    const ifModifiedSince = request.headers.get('if-modified-since');
+    if (ifModifiedSince === lastModified) {
+      return new NextResponse(null, { status: 304 });
+    }
+
     return new NextResponse(buffer, {
       headers: {
         "Content-Type": response.headers["content-type"] || "image/jpeg",
-        "Cache-Control": "public, max-age=86400",
+        "Cache-Control": "public, max-age=2592000, immutable",
+        "ETag": etag,
+        "Expires": new Date(Date.now() + 2592000 * 1000).toUTCString(),
+        "Last-Modified": lastModified,
         "Content-Length": buffer.length.toString(),
+        "Vary": "Accept-Encoding",
       },
     });
   } catch (error: unknown) {
