@@ -6,6 +6,7 @@ const FALLBACK_CONFIG = {
   NEXT_PUBLIC_HEADER_ALWAYS_VISIBLE: 'true',
   NEXT_PUBLIC_HEADER_TITLE: 'immich-albums',
   NEXT_PUBLIC_HEADER_TITLE_HREF: '/',
+  NEXT_PUBLIC_HEADER_LOGO_URL: '',
   NEXT_PUBLIC_HEADER_NAV_ITEMS: JSON.stringify([])
 };
 
@@ -31,6 +32,7 @@ function loadHeaderConfig() {
       NEXT_PUBLIC_HEADER_ALWAYS_VISIBLE: configData.alwaysVisible?.toString() || 'false',
       NEXT_PUBLIC_HEADER_TITLE: configData.title || '',
       NEXT_PUBLIC_HEADER_TITLE_HREF: configData.titleHref || '/',
+      NEXT_PUBLIC_HEADER_LOGO_URL: configData.logoUrl || '',
       NEXT_PUBLIC_HEADER_NAV_ITEMS: JSON.stringify(configData.navigationItems || [])
     };
 
