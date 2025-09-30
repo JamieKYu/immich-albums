@@ -159,7 +159,7 @@ export default function Page() {
               )}
             </div>
 
-            <PhotoGrid photos={album.assets || []} />
+            <PhotoGrid photos={album.assets || []} albumId={id} />
           </div>
         </div>
       </div>

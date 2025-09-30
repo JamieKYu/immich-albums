@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
 import { createApiUrl } from "@/lib/basePath";
@@ -10,8 +11,11 @@ interface Photo {
   [key: string]: unknown;
 }
 
-export default function PhotoGrid({ photos }: { photos: Photo[] }) {
+export default function PhotoGrid({ photos, albumId }: { photos: Photo[]; albumId: string }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
+  const [hasTriggeredDeepLink, setHasTriggeredDeepLink] = useState(false);
 
   const isVideo = (type?: string) => {
     return type && type.toLowerCase().includes('video');
@@ -24,6 +28,24 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
   // Filter out videos - only show images
   const imagePhotos = photos.filter(photo => !isVideo(photo.type));
 
+  // Handle deep linking - open carousel if assetId is in URL (only on initial load)
+  useEffect(() => {
+    const assetId = searchParams.get('assetId');
+    if (assetId && imagePhotos.length > 0 && !hasTriggeredDeepLink) {
+      const index = imagePhotos.findIndex(photo => photo.id === assetId);
+      if (index !== -1) {
+        setHasTriggeredDeepLink(true);
+        // Find and click the corresponding image element
+        setTimeout(() => {
+          const imgElement = document.querySelector(`img[data-photo-id="${assetId}"]`) as HTMLElement;
+          if (imgElement) {
+            imgElement.click();
+          }
+        }, 100);
+      }
+    }
+  }, [searchParams, imagePhotos, hasTriggeredDeepLink]);
+
 
   if (imagePhotos.length === 0) {
     return (
@@ -35,9 +57,29 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <PhotoProvider>
+      <PhotoProvider
+        onVisibleChange={(newVisible, index) => {
+          if (newVisible && index !== undefined) {
+            // Opening carousel - update URL
+            const photo = imagePhotos[index];
+            if (photo) {
+              router.replace(`/albums/${albumId}?assetId=${photo.id}`, { scroll: false });
+            }
+          } else if (!newVisible) {
+            // Closing carousel - clear URL
+            router.replace(`/albums/${albumId}`, { scroll: false });
+          }
+        }}
+        onIndexChange={(index) => {
+          // Update URL with the new asset ID
+          const photo = imagePhotos[index];
+          if (photo) {
+            router.replace(`/albums/${albumId}?assetId=${photo.id}`, { scroll: false });
+          }
+        }}
+      >
         <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-1">
-          {imagePhotos.map((photo) => {
+          {imagePhotos.map((photo, idx) => {
             const thumbUrl = createApiUrl(`/thumbnail/${photo.id}`);
             const fullUrl = createApiUrl(`/asset/${photo.id}`);
             const isLoaded = loadedImages.has(photo.id);
@@ -62,6 +104,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                   <img
                     src={thumbUrl}
                     alt=""
+                    data-photo-id={photo.id}
                     className={`w-full object-cover cursor-pointer hover:opacity-90 transition-opacity duration-200 ${
                       isLoaded ? 'opacity-100' : 'opacity-0 absolute inset-0'
                     }`}
