@@ -78,7 +78,7 @@ export default function PhotoGrid({ photos, albumId }: { photos: Photo[]; albumI
           }
         }}
       >
-        <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-1">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-1 items-center">
           {imagePhotos.map((photo, idx) => {
             const thumbUrl = createApiUrl(`/thumbnail/${photo.id}`);
             const fullUrl = createApiUrl(`/asset/${photo.id}`);
@@ -87,7 +87,7 @@ export default function PhotoGrid({ photos, albumId }: { photos: Photo[]; albumI
             return (
               <div
                 key={photo.id}
-                className="break-inside-avoid mb-1 relative group overflow-hidden"
+                className="relative group overflow-hidden"
               >
                 {/* Loading skeleton - shows until image loads */}
                 {!isLoaded && (

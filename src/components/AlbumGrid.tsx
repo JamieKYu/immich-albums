@@ -36,11 +36,11 @@ export default function AlbumGrid({ albums }: { albums: Album[] }) {
   };
 
   return (
-    <div className="columns-2 md:columns-3 lg:columns-4 gap-6 space-y-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 items-center">
       {albums.map((album) => (
         <Link key={album.id} href={`/albums/${album.id}`} onClick={handleAlbumClick}>
           <div
-            className="cursor-pointer break-inside-avoid mb-6 transform hover:scale-105 transition-all duration-300 hover:rotate-1"
+            className="cursor-pointer transform hover:scale-105 transition-all duration-300 hover:rotate-1"
             style={{
               transform: `rotate(${getRotation(album.id)}deg)`,
               filter: 'drop-shadow(4px 4px 8px rgba(0,0,0,0.3))'
