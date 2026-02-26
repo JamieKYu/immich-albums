@@ -32,7 +32,7 @@ export async function GET(
 
     const baseUrl = process.env.IMMICH_URL;
     const response = await axios.get(
-      `${baseUrl}/assets/${assetId}/original`,
+      `${baseUrl}/assets/${assetId}/thumbnail?size=preview`,
       {
         headers: {
           "x-api-key": process.env.IMMICH_API_KEY,
