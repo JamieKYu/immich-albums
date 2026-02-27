@@ -50,4 +50,4 @@ jobs:
             ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.major }}.${{ steps.version.outputs.minor }}
             ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.major }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=max,ignore-error=true
