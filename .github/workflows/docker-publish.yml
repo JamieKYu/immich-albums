@@ -73,8 +73,12 @@ jobs:
           echo "major=$MAJOR" >> $GITHUB_OUTPUT
           echo "minor=$MINOR" >> $GITHUB_OUTPUT
 
-      - name: Copy header config
-        run: cp config/.header-config.json config/header-config.json
+      - name: Write header config
+        env:
+          HEADER_CONFIG_JSON: ${{ secrets.HEADER_CONFIG_JSON }}
+        run: |
+          mkdir -p config
+          echo "$HEADER_CONFIG_JSON" > config/header-config.json
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
