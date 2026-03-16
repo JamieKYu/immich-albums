@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@jamiekyu/website-header": "^1.0.24",
-    "@jamiekyu/website-theme": "1.0.0",
+    "@jamiekyu/website-theme": "^1.0.1",
     "axios": "^1.11.0",
     "next": "^15.5.12",
     "photoswipe": "^5.4.4",
