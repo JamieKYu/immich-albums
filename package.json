@@ -10,8 +10,9 @@
   },
   "dependencies": {
     "@jamiekyu/website-header": "^1.0.24",
+    "@jamiekyu/website-theme": "1.0.0",
     "axios": "^1.11.0",
-    "next": "15.5.2",
+    "next": "^15.5.12",
     "photoswipe": "^5.4.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",

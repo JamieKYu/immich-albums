@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Kalam, Caveat } from "next/font/google";
 import "@jamiekyu/website-header/dist/header.css";
+import "@jamiekyu/website-theme/dist/theme.css";
 import "./globals.css";
 
 const geistSans = Geist({
