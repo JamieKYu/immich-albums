@@ -15,6 +15,7 @@ export default function PhotoGrid({ photos, albumId }: { photos: Photo[]; albumI
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
   const [hasTriggeredDeepLink, setHasTriggeredDeepLink] = useState(false);
 
   const isVideo = (type?: string) => {
@@ -25,8 +26,12 @@ export default function PhotoGrid({ photos, albumId }: { photos: Photo[]; albumI
     setLoadedImages(prev => new Set([...prev, photoId]));
   };
 
-  // Filter out videos - only show images
-  const imagePhotos = photos.filter(photo => !isVideo(photo.type));
+  const handleImageError = (photoId: string) => {
+    setFailedImages(prev => new Set([...prev, photoId]));
+  };
+
+  // Filter out videos and photos with failed thumbnails - only show images
+  const imagePhotos = photos.filter(photo => !isVideo(photo.type) && !failedImages.has(photo.id));
 
   // Handle deep linking - open carousel if assetId is in URL (only on initial load)
   useEffect(() => {
@@ -110,6 +115,7 @@ export default function PhotoGrid({ photos, albumId }: { photos: Photo[]; albumI
                     }`}
                     loading="lazy"
                     onLoad={() => handleImageLoad(photo.id)}
+                    onError={() => handleImageError(photo.id)}
                   />
                 </PhotoView>
               </div>
