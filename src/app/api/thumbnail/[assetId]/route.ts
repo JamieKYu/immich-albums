@@ -71,11 +71,15 @@ export async function GET(
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     const errorStatus = (error as { response?: { status?: number } })?.response?.status;
-    console.error("Error fetching thumbnail:", {
-      assetId: (await params).assetId,
-      error: errorMessage,
-      status: errorStatus,
-    });
+    // A 404 just means Immich has no thumbnail for this asset (still processing,
+    // offline, or trashed) — an expected condition, not an error worth alarming on.
+    if (errorStatus !== 404) {
+      console.error("Error fetching thumbnail:", {
+        assetId: (await params).assetId,
+        error: errorMessage,
+        status: errorStatus,
+      });
+    }
     return new NextResponse("Thumbnail not found", {
       status: errorStatus || 404
     });
