@@ -10,6 +10,7 @@ interface Album {
   albumName: string;
   albumThumbnailAssetId: string;
   startDate?: string;
+  endDate?: string;
   [key: string]: unknown;
 }
 
@@ -25,10 +26,12 @@ export default function Page() {
       const response = await fetch(createApiUrl("/albums"));
       const albumsData: Album[] = await response.json();
 
-      // Group albums by year from startDate
+      // Group albums by year from endDate. endDate (the latest asset) reflects
+      // when the album actually happened, whereas startDate (the earliest asset)
+      // gets dragged into the past by individual photos with bad EXIF dates.
       const albumsByYearData = albumsData.reduce((acc: Record<string, Album[]>, album: Album) => {
-        if (album.startDate) {
-          const year = new Date(album.startDate).getFullYear().toString();
+        if (album.endDate) {
+          const year = new Date(album.endDate).getFullYear().toString();
           if (!acc[year]) {
             acc[year] = [];
           }
@@ -40,10 +43,10 @@ export default function Page() {
       // Sort years in descending order
       const sortedYearsData = Object.keys(albumsByYearData).sort((a, b) => parseInt(b) - parseInt(a));
 
-      // Sort albums within each year by startDate (descending)
+      // Sort albums within each year by endDate (descending)
       sortedYearsData.forEach(year => {
         albumsByYearData[year].sort((a: Album, b: Album) =>
-          new Date(b.startDate || 0).getTime() - new Date(a.startDate || 0).getTime()
+          new Date(b.endDate || 0).getTime() - new Date(a.endDate || 0).getTime()
         );
       });
 
