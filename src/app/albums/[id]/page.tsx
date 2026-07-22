@@ -27,6 +27,16 @@ export default function Page() {
   const [album, setAlbum] = useState<Album | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownload = () => {
+    // The download route streams a ZIP with a Content-Disposition attachment
+    // header, so navigating to it triggers the browser's native download.
+    setDownloading(true);
+    window.location.href = createApiUrl(`/albums/${id}/download`);
+    // The navigation doesn't unload the page, so re-enable after a short delay.
+    setTimeout(() => setDownloading(false), 4000);
+  };
 
   useEffect(() => {
     const fetchAlbum = async () => {
@@ -128,9 +138,28 @@ export default function Page() {
       <div className="page-padding">
         <div className="max-w-7xl mx-auto">
           <div className="pb-6">
-            <h1 className="section-heading">
-              {album.albumName}
-            </h1>
+            <div className="flex items-start justify-between gap-4">
+              <h1 className="section-heading">
+                {album.albumName}
+              </h1>
+              <button
+                onClick={handleDownload}
+                disabled={downloading}
+                className="flex items-center gap-2 shrink-0 rounded-md bg-stone-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {downloading ? (
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={4} />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                )}
+                {downloading ? "Preparing…" : "Download"}
+              </button>
+            </div>
 
             {/* Album metadata */}
             <div className="mb-8 text-gray-700 space-y-2">
